@@ -13,16 +13,10 @@ const animationDuration = 8000;
 let widgetLocked = false;						// Needed to lock animation from overlapping
 let alertQueue = [];
 
-// showPlatform
-// showAvatar
-// showTimestamp
-// showBadgetList
-// showPronouns
-// showUsername
-// showMessage
-// hideAfter
-// excludeCommands
-// 
+/////////////
+// OPTIONS //
+/////////////
+
 
 
 /////////////////////////
@@ -212,8 +206,14 @@ async function TwitchChatMessage(data) {
 
 	// Render cheermotes
 	for (i in data.cheerEmotes) {
-		const cheerEmoteElement = `<img src="${data.cheerEmotes[i].imageUrl}" class="emote"/>`;
-		messageDiv.innerHTML = messageDiv.innerHTML.replace(new RegExp(`\\b${data.cheerEmotes[i].name}\\b`), cheerEmoteElement);
+		// const cheerEmoteElement = `<img src="${data.cheerEmotes[i].imageUrl}" class="emote"/>`;
+		// messageDiv.innerHTML = messageDiv.innerHTML.replace(new RegExp(`\\b${data.cheerEmotes[i].name}\\b`), cheerEmoteElement);
+		const bits = data.cheerEmotes[i].bits;
+		const imageUrl = data.cheerEmotes[i].imageUrl;
+		const name = data.cheerEmotes[i].name;
+		const cheerEmoteElement = `<img src="${imageUrl}" class="emote"/>`;
+		const bitsElements = `<span class="bits">${bits}</span>`
+		messageDiv.innerHTML = messageDiv.innerHTML.replace(new RegExp(`\\b${name}${bits}\\b`, 'i'), cheerEmoteElement + bitsElements);
 	}
 
 	// Render avatars
@@ -229,7 +229,7 @@ async function TwitchChatMessage(data) {
 	if (messageList.children.length > 0) {
 		const lastPlatform = messageList.lastChild.dataset.platform;
 		const lastUserId = messageList.lastChild.dataset.userId;
-		if (lastPlatform == "twitch" & lastUserId == data.user.id)
+		if (lastPlatform == "twitch" && lastUserId == data.user.id)
 			userInfoDiv.style.display = "none";
 	}
 
@@ -468,11 +468,11 @@ function YouTubeMessage(data) {
 	if (messageList.children.length > 0) {
 		const lastPlatform = messageList.lastChild.dataset.platform;
 		const lastUserId = messageList.lastChild.dataset.userId;
-		if (lastPlatform == "youtube" & lastUserId == username)
+		if (lastPlatform == "youtube" && lastUserId == data.user.id)
 			userInfoDiv.style.display = "none";
 	}
 
-	AddMessageItem(instance, data.eventId, 'youtube', username);
+	AddMessageItem(instance, data.eventId, 'youtube', data.user.id);
 }
 
 function YouTubeSuperChat(data) {
