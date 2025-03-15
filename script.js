@@ -17,6 +17,40 @@ let alertQueue = [];
 // OPTIONS //
 /////////////
 
+const showPlatform = GetBooleanParam("showPlatform", true);
+const showAvatar = GetBooleanParam("showAvatar", true);
+const showTimestamps = GetBooleanParam("showTimestamps", false);
+const showBadges = GetBooleanParam("showBadges", true);
+const showPronouns = GetBooleanParam("showPronouns", false);
+const showUsername = GetBooleanParam("showUsername", true);
+const showMessage = GetBooleanParam("showMessage", true);
+const font = urlParams.get("font") || "";
+const fontSize = urlParams.get("fontSize") || "18";
+
+const hideAfter = GetIntParam("hideAfter") || 0;
+const excludeCommands = GetBooleanParam("excludeCommands", true);
+const ignoreChatters = urlParams.get("ignoreChatters") || "";
+
+const showTwitchMessages = GetBooleanParam("showTwitchMessages", true);
+const showTwitchAnnouncements = GetBooleanParam("showTwitchAnnouncements", true);
+const showTwitchSubs = GetBooleanParam("showTwitchSubs", true);
+const showTwitchRaids = GetBooleanParam("showTwitchRaids", true);
+
+const showYouTubeMessages = GetBooleanParam("showYouTubeMessages", true);
+const showYouTubeSuperChats = GetBooleanParam("showYouTubeSuperChats", true);
+const showYouTubeSuperStickers = GetBooleanParam("showYouTubeSuperStickers", true);
+const showYouTubeMemberships = GetBooleanParam("showYouTubeMemberships", true);
+
+const showStreamlabsDonations = GetBooleanParam("showStreamlabsDonations", true)
+const showStreamElementsTips = GetBooleanParam("showStreamElementsTips", true);
+
+// Set fonts for the widget
+document.body.style.fontFamily = font;
+document.body.style.fontSize = `${fontSize}px`;
+
+// Get a list of chatters to ignore
+const ignoreUserList = ignoreChatters.split(',').map(item => item.trim().toLowerCase()) || [];
+
 
 
 /////////////////////////
@@ -141,6 +175,17 @@ client.on('StreamElements.Tip', (response) => {
 /////////////////////
 
 async function TwitchChatMessage(data) {
+	if (!showTwitchMessages)
+		return;
+
+	// Don't post messages starting with "!"
+	if (data.message.message.startsWith("!") && excludeCommands)
+		return;
+
+	// Don't post messages from users from the ignore list
+	if (ignoreUserList.includes(data.message.username))
+		return;
+
 	// Get a reference to the template
 	const template = document.getElementById('messageTemplate');
 
@@ -159,16 +204,20 @@ async function TwitchChatMessage(data) {
 	const messageDiv = instance.querySelector("#message");
 
 	// Set timestamp
-	timestampDiv.classList.add("timestamp");
-	timestampDiv.innerText = GetCurrentTimeFormatted();
+	if (showTimestamps) {
+		timestampDiv.classList.add("timestamp");
+		timestampDiv.innerText = GetCurrentTimeFormatted();
+	}
 
 	// Set the username info
-	usernameDiv.innerText = data.message.displayName;
-	usernameDiv.style.color = data.message.color;
+	if (showUsername) {
+		usernameDiv.innerText = data.message.displayName;
+		usernameDiv.style.color = data.message.color;
+	}
 
 	// Set pronouns
 	const pronouns = await GetPronouns('twitch', 'caffeinedaydream');
-	if (pronouns) {
+	if (pronouns && showPronouns) {
 		pronounsDiv.classList.add("pronouns");
 		pronounsDiv.innerText = pronouns;
 	}
@@ -176,26 +225,32 @@ async function TwitchChatMessage(data) {
 	// Set the message data
 	const message = data.message.message;
 	const messageColor = data.message.color;
-	const role = data.message.role;
 
 	// Set message text
-	messageDiv.innerText = message;
+	if (showMessage) {
+		messageDiv.innerText = message;
+	}
 
 	// Set the "action" color
 	if (data.message.isMe)
 		messageDiv.style.color = messageColor;
 
 	// Render platform
-	const platformElements = `<img src="icons/platforms/twitch.png" class="platform"/>`;
-	platformDiv.innerHTML = platformElements;
+	if (showPlatform) {
+		const platformElements = `<img src="icons/platforms/twitch.png" class="platform"/>`;
+		platformDiv.innerHTML = platformElements;
+	}
+	
 
 	// Render badges
-	badgeListDiv.innerHTML = "";
-	for (i in data.message.badges) {
-		const badge = new Image();
-		badge.src = data.message.badges[i].imageUrl;
-		badge.classList.add("badge");
-		badgeListDiv.appendChild(badge);
+	if (showBadges) {
+		badgeListDiv.innerHTML = "";
+		for (i in data.message.badges) {
+			const badge = new Image();
+			badge.src = data.message.badges[i].imageUrl;
+			badge.classList.add("badge");
+			badgeListDiv.appendChild(badge);
+		}
 	}
 
 	// Render emotes
@@ -217,12 +272,14 @@ async function TwitchChatMessage(data) {
 	}
 
 	// Render avatars
-	const username = data.message.username;
-	const avatarURL = await GetAvatar(username);
-	const avatar = new Image();
-	avatar.src = avatarURL;
-	avatar.classList.add("avatar");
-	avatarDiv.appendChild(avatar);
+	if (showAvatar) {
+		const username = data.message.username;
+		const avatarURL = await GetAvatar(username);
+		const avatar = new Image();
+		avatar.src = avatarURL;
+		avatar.classList.add("avatar");
+		avatarDiv.appendChild(avatar);
+	}
 
 	// Hide the header if the same username sends a message twice in a row
 	const messageList = document.getElementById("messageList");
@@ -237,6 +294,9 @@ async function TwitchChatMessage(data) {
 }
 
 async function TwitchAnnouncement(data) {
+	if (!showTwitchAnnouncements)
+		return;
+
 	let background = null;
 
 	// Set the card background colors
@@ -269,6 +329,9 @@ async function TwitchAnnouncement(data) {
 }
 
 async function TwitchSub(data) {
+	if (!showTwitchSubs)
+		return;
+
 	const username = data.user.name;
 	const subTier = data.sub_tier;
 	const isPrime = data.is_prime;
@@ -284,6 +347,9 @@ async function TwitchSub(data) {
 }
 
 async function TwitchResub(data) {
+	if (!showTwitchSubs)
+		return;
+
 	const username = data.user.name;
 	const subTier = data.subTier;
 	const isPrime = data.isPrime;
@@ -300,6 +366,9 @@ async function TwitchResub(data) {
 }
 
 async function TwitchGiftSub(data) {
+	if (!showTwitchSubs)
+		return;
+
 	const username = data.user.name;
 	const subTier = data.subTier;
 	const recipient = data.recipient.name;
@@ -315,6 +384,9 @@ async function TwitchGiftSub(data) {
 }
 
 async function TwitchGiftBomb(data) {
+	if (!showTwitchSubs)
+		return;
+	
 	const username = data.displayName;
 	const gifts = data.gifts;
 	const subTier = data.subTier;
@@ -325,6 +397,9 @@ async function TwitchGiftBomb(data) {
 }
 
 async function TwitchRaid(data) {
+	if (!showTwitchRaids)
+		return;
+
 	const username = data.from_broadcaster_user_login;
 	const viewers = data.viewers;
 
@@ -386,6 +461,17 @@ function TwitchChatCleared(data) {
 }
 
 function YouTubeMessage(data) {
+	if (!showYouTubeMessages)
+		return;
+
+	// Don't post messages starting with "!"
+	if (data.message.startsWith("!") && excludeCommands)
+		return;
+
+	// Don't post messages from users from the ignore list
+	if (ignoreUserList.includes(data.user.name))
+		return;
+
 	// Get a reference to the template
 	const template = document.getElementById('messageTemplate');
 
@@ -402,20 +488,29 @@ function YouTubeMessage(data) {
 	const messageDiv = instance.querySelector("#message");
 
 	// Set timestamp
-	timestampDiv.classList.add("timestamp");
-	timestampDiv.innerText = GetCurrentTimeFormatted();
+	if (showTimestamps) {
+		timestampDiv.classList.add("timestamp");
+		timestampDiv.innerText = GetCurrentTimeFormatted();
+	}
 
 	// Set the message data
-	usernameDiv.innerText = data.user.name;
-	usernameDiv.style.color = "#f70000";	// YouTube users do not have colors, so just set it to red
-	messageDiv.innerText = data.message;
+	if (showUsername) {
+		usernameDiv.innerText = data.user.name;
+		usernameDiv.style.color = "#f70000";	// YouTube users do not have colors, so just set it to red
+	}
+
+	if (showMessage) {
+		messageDiv.innerText = data.message;
+	}
 
 	// Render platform
-	const platformElements = `<img src="icons/platforms/youtube.png" class="platform"/>`;
-	platformDiv.innerHTML = platformElements;
+	if (showPlatform) {
+		const platformElements = `<img src="icons/platforms/youtube.png" class="platform"/>`;
+		platformDiv.innerHTML = platformElements;
+	}
 
 	// Render badges
-	if (data.user.isOwner) {
+	if (data.user.isOwner && showBadges) {
 		const badge = new Image();
 		badge.src = `icons/badges/youtube-broadcaster.svg`;
 		badge.style.filter = `invert(100%)`;
@@ -424,7 +519,7 @@ function YouTubeMessage(data) {
 		badgeListDiv.appendChild(badge);
 	}
 
-	if (data.user.isModerator) {
+	if (data.user.isModerator && showBadges) {
 		const badge = new Image();
 		badge.src = `icons/badges/youtube-moderator.svg`;
 		badge.style.filter = `invert(100%)`;
@@ -433,7 +528,7 @@ function YouTubeMessage(data) {
 		badgeListDiv.appendChild(badge);
 	}
 
-	if (data.user.isSponsor) {
+	if (data.user.isSponsor && showBadges) {
 		const badge = new Image();
 		badge.src = `icons/badges/youtube-member.svg`;
 		badge.style.filter = `invert(100%)`;
@@ -442,7 +537,7 @@ function YouTubeMessage(data) {
 		badgeListDiv.appendChild(badge);
 	}
 
-	if (data.user.isVerified) {
+	if (data.user.isVerified && showBadges) {
 		const badge = new Image();
 		badge.src = `icons/badges/youtube-verified.svg`;
 		badge.style.filter = `invert(100%)`;
@@ -458,10 +553,12 @@ function YouTubeMessage(data) {
 	}
 
 	// Render avatars
-	const avatar = new Image();
-	avatar.src = data.user.profileImageUrl;
-	avatar.classList.add("avatar");
-	avatarDiv.appendChild(avatar);
+	if (showAvatar) {
+		const avatar = new Image();
+		avatar.src = data.user.profileImageUrl;
+		avatar.classList.add("avatar");
+		avatarDiv.appendChild(avatar);
+	}
 
 	// Hide the header if the same username sends a message twice in a row
 	const messageList = document.getElementById("messageList");
@@ -476,18 +573,27 @@ function YouTubeMessage(data) {
 }
 
 function YouTubeSuperChat(data) {
+	if (!showYouTubeSuperChats)
+		return;
+
 	let message = `🪙 ${data.user.name} sent a Super Chat (${data.amount})`;
 
 	ShowAlert(message, 'youtube');
 }
 
 function YouTubeSuperSticker(data) {
+	if (!showYouTubeSuperStickers)
+		return;
+
 	let message = `${data.user.name} sent a Super Sticker (${data.amount})`;
 
 	ShowAlert(message, 'youtube');
 }
 
 function YouTubeNewSponsor(data) {
+	if (!showYouTubeMemberships)
+		return;
+
 	// Set message text
 	let message = `⭐ New ${data.levelName} • Welcome ${data.user.name}!`;
 
@@ -495,12 +601,18 @@ function YouTubeNewSponsor(data) {
 }
 
 function YouTubeGiftMembershipReceived(data) {
+	if (!showYouTubeMemberships)
+		return;
+
 	let message = `🎁 ${data.gifter.name} gifted a membership to ${data.user.name} (${data.tier})!`;
 
 	ShowAlert(message, 'youtube');
 }
 
 function StreamlabsDonation(data) {
+	if (!showStreamlabsDonations)
+		return;
+
 	const donater = data.from;
 	const formattedAmount = data.formattedAmount;
 	const currency = data.currency;
@@ -511,6 +623,9 @@ function StreamlabsDonation(data) {
 }
 
 function StreamElementsTip(data) {
+	if (!showStreamElementsTips)
+		return;
+
 	const donater = data.username;
 	const formattedAmount = `$${data.amount}`;
 	const currency = data.currency;
@@ -525,6 +640,42 @@ function StreamElementsTip(data) {
 //////////////////////
 // HELPER FUNCTIONS //
 //////////////////////
+
+function GetBooleanParam(paramName, defaultValue) {
+	const urlParams = new URLSearchParams(window.location.search);
+	const paramValue = urlParams.get(paramName);
+
+	if (paramValue === null) {
+		return defaultValue; // Parameter not found
+	}
+
+	const lowercaseValue = paramValue.toLowerCase(); // Handle case-insensitivity
+
+	if (lowercaseValue === 'true') {
+		return true;
+	} else if (lowercaseValue === 'false') {
+		return false;
+	} else {
+		return paramValue; // Return original string if not 'true' or 'false'
+	}
+}
+
+function GetIntParam(paramName) {
+	const urlParams = new URLSearchParams(window.location.search);
+	const paramValue = urlParams.get(paramName);
+
+	if (paramValue === null) {
+		return null; // or undefined, or a default value, depending on your needs
+	}
+
+	const intValue = parseInt(paramValue, 10); // Parse as base 10 integer
+
+	if (isNaN(intValue)) {
+		return null; // or handle the error in another way, e.g., throw an error
+	}
+
+	return intValue;
+}
 
 function GetCurrentTimeFormatted() {
 	const now = new Date();
@@ -598,6 +749,16 @@ function AddMessageItem(element, elementID, platform, userId) {
 		}
 
 		tempDiv.innerHTML = '';
+		
+		if (hideAfter > 0)
+		{
+			setTimeout(function () {
+				lineItem.style.opacity = 0;
+				setTimeout(function() {
+					messageList.removeChild(lineItem);
+				}, 1000);
+			}, hideAfter * 1000);
+		}
 
 	}, 200);
 }
