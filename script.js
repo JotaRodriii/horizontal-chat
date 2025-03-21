@@ -216,7 +216,7 @@ async function TwitchChatMessage(data) {
 	}
 
 	// Set pronouns
-	const pronouns = await GetPronouns('twitch', data.message.username);
+	const pronouns = await GetPronouns('twitch', 'caffeinedaydream');
 	if (pronouns && showPronouns) {
 		pronounsDiv.classList.add("pronouns");
 		pronounsDiv.innerText = pronouns;
@@ -549,7 +549,7 @@ function YouTubeMessage(data) {
 	// Render emotes
 	for (i in data.emotes) {
 		const emoteElement = `<img src="${data.emotes[i].imageUrl}" class="emote"/>`;
-		messageDiv.innerHTML = messageDiv.innerHTML.replace(new RegExp(`\\b${data.emotes[i].name}\\b`), emoteElement);
+		messageDiv.innerHTML = messageDiv.innerHTML.replace(data.emotes[i].name, emoteElement);
 	}
 
 	// Render avatars

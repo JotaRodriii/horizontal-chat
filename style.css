@@ -118,15 +118,18 @@ li {
 .timestamp,
 .pronouns {
 	background: #adadad46;
-	border-radius: var(--border-radius);
-	font-size: 0.7rem;
-	padding: 5px 15px;
+	/* border-radius: var(--border-radius); */
+	border-radius: 1em;
+	font-size: 0.7em;
+	/* padding: 5px 15px; */
+	padding: 0.15em 0.5em;
+
 }
 
 .bits {
 	background: #adadad46;
 	border-radius: calc(var(--border-radius) / 2);
-	font-size: 0.7rem;
+	font-size: 0.7em;
 	padding: 5px 10px;
 }
 
@@ -159,7 +162,7 @@ li {
 
 /* .firstMessage {
 	display: none;
-	font-size: 0.7rem;
+	font-size: 0.7em;
 } */
 
 /* .firstMessageHighlight {
@@ -173,7 +176,7 @@ li {
 	overflow: hidden;
 	white-space: nowrap;
 	text-overflow: ellipsis;
-	font-size: 0.7rem;
+	font-size: 0.7em;
 	opacity: 0.5;
 } */
 
@@ -266,7 +269,6 @@ li {
 }
 
 /*
-
 #message {
 	display: none;
 }
@@ -290,7 +292,6 @@ li {
 #badgeList {
 	display: none;
 }
-*/
 
 #timestamp {
 	display: none;
@@ -299,3 +300,4 @@ li {
 #pronouns {
 	display: none;
 }
+*/
